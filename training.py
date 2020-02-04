@@ -13,7 +13,7 @@ device = torch.device("cuda" if train_on_gpu else "cpu")
 pin_memory = True
 
 batch_size = 2
-epoch = 2000
+epoch = 300
 num_workers = 4
 
 lossT = [np.inf]
