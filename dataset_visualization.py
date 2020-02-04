@@ -5,12 +5,10 @@ import torch
 from PIL import Image
 
 dataset = ImageDataSet(root_dir="../../Desktop/data/")
-
 x,y = dataset[0]
-
 img = Image.fromarray(x)
-
-
+img_gt = Image.fromarray(y)
 img.show()
+img_gt.show()
 
 
