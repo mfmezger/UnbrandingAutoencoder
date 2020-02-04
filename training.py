@@ -1,7 +1,11 @@
 import time
 from DataSet import ImageDataSet
 import numpy as np
-import torch.nn
+import torch
+from torch import nn
+from model import ConvolutionalAutoencoder
+import torchsummary
+from torchvision import transforms
 
 # Test for GPU
 train_on_gpu = torch.cuda.is_available()
@@ -11,18 +15,23 @@ pin_memory = True
 batch_size = 2
 epoch = 20
 num_workers = 4
-dataset = ImageDataSet(root_dir="")
 
 lossT = [np.inf]
 lossL = [np.inf]
 
 # Parallalising the Model and moving it on the GPU, Initializing of the Weights.
+
+
+model = ConvolutionalAutoencoder()
 model.to(device)
-model.apply(U_Net.init_weights)
 
+torchsummary.summary(model, input_size=(3, 256, 256))
 
+dataset = ImageDataSet(root_dir="~/Desktop/data/", transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+]))
 train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory, drop_last=True)
-# torchsummary.summary(model, input_size=(130, 256, 256))
 
 # Initialize the Metrics
 initial_lr = 0.001
@@ -32,7 +41,7 @@ opt = torch.optim.Adam(model.parameters(), lr=initial_lr)  # try SGD
 # INITIALIZE Scheduler
 MAX_STEP = int(1e10)
 scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=30, gamma=0.1)
-
+lossMSE = nn.MSELoss()
 # Generate Folders for the model to be saved.
 model.train()
 for i in range(epoch):
@@ -53,7 +62,7 @@ for i in range(epoch):
         y_pred = model(x)
 
         # Selecting the Loss.
-        lossT = ce_loss(y, y_pred, weights)
+        lossT = lossMSE(y_pred, y)
 
         # Update the loss, Optimizer & Scheduler step.
         train_loss += lossT.item() * x.size(0)

@@ -3,8 +3,8 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from PIL import ImageFont
+import numpy as np
 from PIL import ImageDraw
-import copy
 
 
 class ImageDataSet(Dataset):
@@ -31,22 +31,30 @@ class ImageDataSet(Dataset):
 
         img_name = self.img_dir[idx]
 
-        image = Image.open(self.root_dir + img_name)
+        image = Image.open(os.path.join(self.root_dir + img_name))
         image_gt = image.copy()
 
         # apply the text.
 
-        img = Image.open("sample_in.jpg")
+        # Randomize text here.
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.truetype("Arial.ttf", 16)
+        width, height = image.size
 
-        draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype("sans-serif.ttf", 16)
-        draw.text((0, 0), "ImageImageImage", (255, 255, 255), font=font)
-        draw.text((200, 0), "ImageImageImage", (255, 255, 255), font=font)
-        draw.text((450, 0), "ImageImageImage", (255, 255, 255), font=font)
+        x = 0
+        while x  < width:
+            y = 0
+            while y < height:
+                draw.text((x, y), "Image", (255, 255, 255), font=font)
+                y += 100
+            x += 100
 
-        sample = {'image': image, 'gt': image_gt}
 
-        if self.transform:
-            sample = self.transform(sample)
+        image = np.array(image)
+        image_gt = np.array(image_gt)
+        #sample = {'image': image, 'gt': image_gt}
 
-        return sample
+        #if self.transform:
+        #    sample = self.transform(sample)
+
+        return image, image_gt
